@@ -1,0 +1,14 @@
+[{
+  "modid": "forgeryupdater",
+  "name": "Forgery Updater",
+  "description": "The updater for Forgery Client",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Wyvest, isXander"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}]
