@@ -1,33 +1,59 @@
 package io.github.forgery.updater;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import net.minecraft.launchwrapper.Launch;
-import net.minecraftforge.fml.common.Loader;
-import net.minecraftforge.fml.common.ModContainer;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public class UpdateChecker {
 
     static Gson gson = new Gson();
+    static ArrayList<JsonObject> modsFetched = new ArrayList<>();
 
     public static void updateMods() {
         File[] modList = new File(Launch.minecraftHome, "mods").listFiles((dir, name) -> name.endsWith(".jar"));
-        assert modList != null; //make mod work in dev env when no mods are in the folder
-        if (!modList[0].toString().equals("!Forgery-Updater-DONOTRENAME") || !modList[0].toString().equals("!Forgery-Updater-DONOTRENAME.jar")) { //if the updater isn't loaded first, throw a RuntimeException
-            throw new RuntimeException("You have renamed the Forgery Updater or one of the files in your mod folder! In order for the updater to work, you need the Forgery Updater to be listed first in your mods folder (in alphabetical order).");
-        }
-        for (ModContainer container : Loader.instance().getModList()) {
-            //insert code here.
+        assert modList != null;
+        fetchFromGithub("mods", modsFetched); //this fetches mods.json from Forgery Assets
+        for (JsonObject o : modsFetched) {
+            for (File file : modList) {
+                try {
+                    try (ZipFile zipFile = new ZipFile(file)) {
+                        ZipEntry entry = zipFile.getEntry("mcmod.info");
+                        if (entry != null) {
+                            try (InputStream inputStream = zipFile.getInputStream(entry)) {
+                                byte[] availableBytes = new byte[inputStream.available()];
+                                inputStream.read(availableBytes, 0, inputStream.available());
+                                JsonObject modInfo = (new JsonParser()).parse(new String(availableBytes)).getAsJsonArray().get(0).getAsJsonObject();
+                                if (modInfo.has("modid")) {
+                                    String modId = modInfo.get("modid").getAsString();
+                                    if (modId.equals(o.get("id")) && modInfo.has("version") && !modInfo.get("version").getAsString().equalsIgnoreCase(o.get("version").getAsString())) {
+                                        file.deleteOnExit();
+                                        //add downloading code here
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
         }
     }
 
+    public static void fetchFromGithub(String get, ArrayList<JsonObject> a) {
+        JsonArray fetchedList = getJSONResponse("https://github.com/Forgery-Client/Forgery-Client-Assets/blob/main/assets/" + get + ".json").getAsJsonArray(); //we love abusing github
+        for (JsonElement e : fetchedList) {
+            for (JsonElement entries : e.getAsJsonObject().get("entries").getAsJsonArray()) {
+                a.add(entries.getAsJsonObject());
+            }
+        }
+    }
     /**
      * Adapted from Danker's Skyblock Mod under GPL 3.0 license
      * https://github.com/bowser0000/SkyblockMod/blob/master/LICENSE
