@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    shadow group: 'com.github.forgery-client', name: 'forgery-client-installer', version: '575efda'
+    shadow group: 'com.github.forgery-client', name: 'asset-manager-java', version: '67afe84c9d'
 
     compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.2.3'
     implementation group: 'net.minecraft', name: 'launchwrapper', version: '1.12'
