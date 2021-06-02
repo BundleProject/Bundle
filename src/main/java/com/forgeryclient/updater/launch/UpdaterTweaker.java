@@ -1,20 +1,24 @@
-package io.github.forgery.updater;
+package com.forgeryclient.updater.launch;
 
-import io.github.forgery.updater.UpdateChecker;
+import com.forgeryclient.updater.ForgeryUpdater;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
 import java.io.File;
 import java.util.List;
 
-public class ForgeryTweaker implements ITweaker {
+public class UpdaterTweaker implements ITweaker {
+
+    private File gameDir;
 
     @Override
-    public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {}
+    public void acceptOptions(List<String> args, File gameDir, File assetsDir, String profile) {
+        this.gameDir = gameDir;
+    }
 
     @Override
     public void injectIntoClassLoader(LaunchClassLoader classLoader) {
-        UpdateChecker.updateMods();
+        ForgeryUpdater.getInstance().start(gameDir);
     }
 
     @Override
