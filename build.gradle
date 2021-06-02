@@ -18,13 +18,24 @@ repositories {
     }
 }
 
+configurations {
+    include
+    implementation.extendsFrom(include)
+}
+
 dependencies {
-    shadow group: 'com.github.forgery-client', name: 'asset-manager-java', version: '67afe84c9d'
+    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: '67afe84c9d') {
+        exclude module: 'gson'
+    }
 
     compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.2.3'
     implementation group: 'net.minecraft', name: 'launchwrapper', version: '1.12'
 }
 
 shadowJar {
+    configurations = [project.configurations.include]
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
     archiveClassifier.set('')
 }
+
+jar.finalizedBy shadowJar
