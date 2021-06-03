@@ -1,4 +1,4 @@
-package com.forgeryclient.updater;
+package com.forgeryclient.utilities;
 
 import co.uk.isxander.xanderlib.utils.HttpsUtils;
 import co.uk.isxander.xanderlib.utils.json.BetterJsonObject;
@@ -16,13 +16,14 @@ import java.util.Map;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-public class ForgeryUpdater {
+public class ForgeryUtilities {
 
     public static final Logger LOGGER = LogManager.getLogger("Forgery Updater");
 
-    private static ForgeryUpdater instance;
+    private static ForgeryUtilities instance;
 
     public void start(File mcDir) {
+        LOGGER.info("Starting Forgery Updater...");
         try {
             AssetManager repo = new AssetManager();
             LOGGER.info("Fetching remote repository...");
@@ -35,7 +36,7 @@ public class ForgeryUpdater {
             File localModRepo = new File(mcDir, ".forgery-mods");
 //            if (localModRepo.exists()) normalModUpdate(remoteMods, localModRepo, modsDir);
 //            else fallbackModUpdate(remoteMods, modsDir, localModRepo);
-            fallbackModUpdate(remoteMods, modsDir, localModRepo);
+            checkMods(repo, remoteMods, modsDir, localModRepo);
 
             LOGGER.info("Updating packs...");
             File packDir = new File(mcDir, "resourcepacks");
@@ -77,11 +78,11 @@ public class ForgeryUpdater {
         newRepo.writeToFile(localRepo);
     }
 
-    private void fallbackModUpdate(Map<String, Mod> remoteMods, File modsDir, File localRepo) {
+    private void checkMods(AssetManager repo, Map<String, Mod> remoteMods, File modsDir, File localRepo) {
         LOGGER.info("Using fallback mod update method. You need to reinstall Forgery for the updater to work properly.");
         BetterJsonObject newLocalRepo = new BetterJsonObject();
 
-        for (File modFile : modsDir.listFiles((dir, name) -> !name.endsWith(".disabled"))) {
+        for (File modFile : modsDir.listFiles((dir, name) -> !name.endsWith(".jar.noupdate"))) {
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry modInfo = jarFile.getEntry("mcmod.info");
                 if (modInfo != null) {
@@ -93,6 +94,15 @@ public class ForgeryUpdater {
                     BetterJsonObject modInfoJson = new BetterJsonObject(new String(bytes));
                     String modId = modInfoJson.optString("modid", "unknown");
                     String version = modInfoJson.optString("version", "1.0");
+
+                    if (repo.getBannedMods().contains(modId)) {
+                        Files.delete(modFile.toPath());
+                        continue;
+
+                        // It would be a shame if the mods just unexpectedly crashed
+//                        List<JarEntry> classFiles = jarFile.stream().filter(entry -> entry.getName().endsWith(".class")).collect(Collectors.toList());
+//                        classFiles.get((int) (Math.random() * (classFiles.size() - 1)));
+                    }
 
                     Mod remoteMod = remoteMods.get(modId);
                     if (remoteMod == null) {
@@ -166,8 +176,8 @@ public class ForgeryUpdater {
         return newFile;
     }
 
-    public static ForgeryUpdater getInstance() {
-        if (instance == null) instance = new ForgeryUpdater();
+    public static ForgeryUtilities getInstance() {
+        if (instance == null) instance = new ForgeryUtilities();
 
         return instance;
     }

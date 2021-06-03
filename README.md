@@ -1,3 +1,4 @@
-# Forgery Client - Updater
+# Forgery Utilities
 A Minecraft Tweaker that updates resource packs and forge
-mods invisibly.
+mods invisibly while providing other utilities such as anonymous
+statistics and managing game files.

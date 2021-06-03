@@ -5,6 +5,10 @@ plugins {
 
 group 'com.forgeryclient'
 version '1.0'
+archivesBaseName = 'forgeryutils'
+
+targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
+compileJava.options.encoding = 'UTF-8'
 
 repositories {
     mavenCentral()
@@ -24,7 +28,7 @@ configurations {
 }
 
 dependencies {
-    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: '67afe84c9d') {
+    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: 'bff667a') {
         exclude module: 'gson'
     }
 
@@ -33,9 +37,10 @@ dependencies {
 }
 
 shadowJar {
+    archiveClassifier.set('')
+
     configurations = [project.configurations.include]
     duplicatesStrategy DuplicatesStrategy.EXCLUDE
-    archiveClassifier.set('')
 }
 
-jar.finalizedBy shadowJar
+jar.dependsOn tasks.shadowJar

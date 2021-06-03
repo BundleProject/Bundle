@@ -1,13 +1,13 @@
-package com.forgeryclient.updater.launch;
+package com.forgeryclient.utilities.tweakers;
 
-import com.forgeryclient.updater.ForgeryUpdater;
+import com.forgeryclient.utilities.ForgeryUtilities;
 import net.minecraft.launchwrapper.ITweaker;
 import net.minecraft.launchwrapper.LaunchClassLoader;
 
 import java.io.File;
 import java.util.List;
 
-public class UpdaterTweaker implements ITweaker {
+public class PreForgeTweaker implements ITweaker {
 
     private File gameDir;
 
@@ -18,7 +18,7 @@ public class UpdaterTweaker implements ITweaker {
 
     @Override
     public void injectIntoClassLoader(LaunchClassLoader classLoader) {
-        ForgeryUpdater.getInstance().start(gameDir);
+        ForgeryUtilities.getInstance().start(gameDir);
     }
 
     @Override
