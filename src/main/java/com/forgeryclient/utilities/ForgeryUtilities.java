@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -47,8 +48,6 @@ public class ForgeryUtilities {
             LOGGER.info("Updating mods...");
             File modsDir = new File(mcDir, "mods");
             File localModRepo = new File(mcDir, ".forgery-mods");
-//            if (localModRepo.exists()) normalModUpdate(remoteMods, localModRepo, modsDir);
-//            else fallbackModUpdate(remoteMods, modsDir, localModRepo);
             checkMods(repo, remoteMods, modsDir, localModRepo);
 
             LOGGER.info("Updating packs...");
@@ -62,40 +61,11 @@ public class ForgeryUtilities {
         }
     }
 
-    private void normalModUpdate(Map<String, Mod> remoteModEntries, File localRepo, File modsDir) throws IOException {
-        BetterJsonObject localMods = BetterJsonObject.getFromFile(localRepo);
-        BetterJsonObject newRepo = new BetterJsonObject();
-
-        for (String k : localMods.getAllKeys()) {
-            BetterJsonObject localMod = localMods.getObj(k);
-
-            Mod remoteMod = remoteModEntries.get(k);
-            if (remoteMod == null) {
-                LOGGER.warn("Local mod list contained unknown mod id: " + k);
-                continue;
-            }
-
-            File modFile = new File(modsDir, localMod.optString("file"));
-            if (!remoteMod.getVersion().equalsIgnoreCase(localMod.optString("version", "1.0"))) {
-                LOGGER.info("Found outdated mod: " + remoteMod.getDisplayName());
-
-                modFile = replaceMod(remoteMod, modFile);
-            }
-
-            BetterJsonObject repoMod = new BetterJsonObject();
-            repoMod.addProperty("version", remoteMod.getVersion());
-            repoMod.addProperty("file", modFile.getName());;
-            newRepo.add(remoteMod.getId(), repoMod);
-        }
-
-        newRepo.writeToFile(localRepo);
-    }
-
     private void checkMods(AssetManager repo, Map<String, Mod> remoteMods, File modsDir, File localRepo) {
         LOGGER.info("Using fallback mod update method. You need to reinstall Forgery for the updater to work properly.");
         BetterJsonObject newLocalRepo = new BetterJsonObject();
 
-        for (File modFile : modsDir.listFiles((dir, name) -> !name.endsWith(".jar.noupdate"))) {
+        for (File modFile : Objects.requireNonNull(modsDir.listFiles((dir, name) -> !name.endsWith(".jar.noupdate")))) {
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry modInfo = jarFile.getEntry("mcmod.info");
                 if (modInfo != null) {
