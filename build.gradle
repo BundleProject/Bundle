@@ -5,6 +5,10 @@ plugins {
 
 group 'com.forgeryclient'
 version '1.0'
+archivesBaseName = 'forgeryutils'
+
+targetCompatibility = sourceCompatibility = JavaVersion.VERSION_1_8
+compileJava.options.encoding = 'UTF-8'
 
 repositories {
     mavenCentral()
@@ -18,8 +22,15 @@ repositories {
     }
 }
 
+configurations {
+    include
+    implementation.extendsFrom(include)
+}
+
 dependencies {
-    shadow group: 'com.github.forgery-client', name: 'forgery-client-installer', version: '575efda'
+    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: 'bff667a') {
+        exclude module: 'gson'
+    }
 
     compileOnly group: 'com.google.code.gson', name: 'gson', version: '2.2.3'
     implementation group: 'net.minecraft', name: 'launchwrapper', version: '1.12'
@@ -27,4 +38,9 @@ dependencies {
 
 shadowJar {
     archiveClassifier.set('')
+
+    configurations = [project.configurations.include]
+    duplicatesStrategy DuplicatesStrategy.EXCLUDE
 }
+
+jar.dependsOn tasks.shadowJar

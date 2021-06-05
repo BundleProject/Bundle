@@ -1,10 +1,10 @@
-package com.forgeryclient.updater;
+package com.forgeryclient.utilities;
 
 import co.uk.isxander.xanderlib.utils.HttpsUtils;
 import co.uk.isxander.xanderlib.utils.json.BetterJsonObject;
-import com.forgeryclient.installer.repo.RepositoryManager;
-import com.forgeryclient.installer.repo.entry.ModEntry;
-import com.forgeryclient.installer.repo.entry.PackEntry;
+import com.forgeryclient.assetmanager.AssetManager;
+import com.forgeryclient.assetmanager.types.Mod;
+import com.forgeryclient.assetmanager.types.Pack;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -13,30 +13,30 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Map;
-import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
-public class ForgeryUpdater {
+public class ForgeryUtilities {
 
     public static final Logger LOGGER = LogManager.getLogger("Forgery Updater");
 
-    private static ForgeryUpdater instance;
+    private static ForgeryUtilities instance;
 
     public void start(File mcDir) {
+        LOGGER.info("Starting Forgery Updater...");
         try {
-            RepositoryManager repo = new RepositoryManager();
+            AssetManager repo = new AssetManager();
             LOGGER.info("Fetching remote repository...");
             repo.fetchFiles();
-            Map<String, ModEntry> remoteMods = repo.getModEntries();
-            Map<String, PackEntry> remotePacks = repo.getPackEntries();
+            Map<String, Mod> remoteMods = repo.getModEntries();
+            Map<String, Pack> remotePacks = repo.getPackEntries();
 
             LOGGER.info("Updating mods...");
             File modsDir = new File(mcDir, "mods");
             File localModRepo = new File(mcDir, ".forgery-mods");
 //            if (localModRepo.exists()) normalModUpdate(remoteMods, localModRepo, modsDir);
 //            else fallbackModUpdate(remoteMods, modsDir, localModRepo);
-            fallbackModUpdate(remoteMods, modsDir, localModRepo);
+            checkMods(repo, remoteMods, modsDir, localModRepo);
 
             LOGGER.info("Updating packs...");
             File packDir = new File(mcDir, "resourcepacks");
@@ -49,40 +49,40 @@ public class ForgeryUpdater {
         }
     }
 
-    private void normalModUpdate(Map<String, ModEntry> remoteModEntries, File localRepo, File modsDir) throws IOException {
+    private void normalModUpdate(Map<String, Mod> remoteModEntries, File localRepo, File modsDir) throws IOException {
         BetterJsonObject localMods = BetterJsonObject.getFromFile(localRepo);
         BetterJsonObject newRepo = new BetterJsonObject();
 
         for (String k : localMods.getAllKeys()) {
-            BetterJsonObject localModEntry = localMods.getObj(k);
+            BetterJsonObject localMod = localMods.getObj(k);
 
-            ModEntry remoteMod = remoteModEntries.get(k);
+            Mod remoteMod = remoteModEntries.get(k);
             if (remoteMod == null) {
                 LOGGER.warn("Local mod list contained unknown mod id: " + k);
                 continue;
             }
 
-            File modFile = new File(modsDir, localModEntry.optString("file"));
-            if (!remoteMod.getVersion().equalsIgnoreCase(localModEntry.optString("version", "1.0"))) {
+            File modFile = new File(modsDir, localMod.optString("file"));
+            if (!remoteMod.getVersion().equalsIgnoreCase(localMod.optString("version", "1.0"))) {
                 LOGGER.info("Found outdated mod: " + remoteMod.getDisplayName());
 
                 modFile = replaceMod(remoteMod, modFile);
             }
 
-            BetterJsonObject repoModEntry = new BetterJsonObject();
-            repoModEntry.addProperty("version", remoteMod.getVersion());
-            repoModEntry.addProperty("file", modFile.getName());
-            newRepo.add(remoteMod.getId(), repoModEntry);
+            BetterJsonObject repoMod = new BetterJsonObject();
+            repoMod.addProperty("version", remoteMod.getVersion());
+            repoMod.addProperty("file", modFile.getName());;
+            newRepo.add(remoteMod.getId(), repoMod);
         }
 
         newRepo.writeToFile(localRepo);
     }
 
-    private void fallbackModUpdate(Map<String, ModEntry> remoteMods, File modsDir, File localRepo) {
+    private void checkMods(AssetManager repo, Map<String, Mod> remoteMods, File modsDir, File localRepo) {
         LOGGER.info("Using fallback mod update method. You need to reinstall Forgery for the updater to work properly.");
         BetterJsonObject newLocalRepo = new BetterJsonObject();
 
-        for (File modFile : Objects.requireNonNull(modsDir.listFiles((dir, name) -> !name.endsWith(".disabled")))) {
+        for (File modFile : modsDir.listFiles((dir, name) -> !name.endsWith(".jar.noupdate"))) {
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry modInfo = jarFile.getEntry("mcmod.info");
                 if (modInfo != null) {
@@ -95,7 +95,16 @@ public class ForgeryUpdater {
                     String modId = modInfoJson.optString("modid", "unknown");
                     String version = modInfoJson.optString("version", "1.0");
 
-                    ModEntry remoteMod = remoteMods.get(modId);
+                    if (repo.getBannedMods().contains(modId)) {
+                        Files.delete(modFile.toPath());
+                        continue;
+
+                        // It would be a shame if the mods just unexpectedly crashed
+//                        List<JarEntry> classFiles = jarFile.stream().filter(entry -> entry.getName().endsWith(".class")).collect(Collectors.toList());
+//                        classFiles.get((int) (Math.random() * (classFiles.size() - 1)));
+                    }
+
+                    Mod remoteMod = remoteMods.get(modId);
                     if (remoteMod == null) {
                         LOGGER.warn("Found unknown Forgery mod. Skipping.");
                         continue;
@@ -107,10 +116,10 @@ public class ForgeryUpdater {
                         modFile = replaceMod(remoteMod, modFile);
                     }
 
-                    BetterJsonObject repoModEntry = new BetterJsonObject();
-                    repoModEntry.addProperty("version", remoteMod.getVersion());
-                    repoModEntry.addProperty("file", modFile.getName());
-                    newLocalRepo.add(remoteMod.getId(), repoModEntry);
+                    BetterJsonObject repoMod = new BetterJsonObject();
+                    repoMod.addProperty("version", remoteMod.getVersion());
+                    repoMod.addProperty("file", modFile.getName());
+                    newLocalRepo.add(remoteMod.getId(), repoMod);
                 }
             } catch (IOException e) {
                 LOGGER.warn("-----------------------------------------------------");
@@ -123,21 +132,21 @@ public class ForgeryUpdater {
         newLocalRepo.writeToFile(localRepo);
     }
 
-    private void normalPackUpdate(Map<String, PackEntry> remotePackEntries, File packDir, File localRepo) throws IOException {
+    private void normalPackUpdate(Map<String, Pack> remotePackEntries, File packDir, File localRepo) throws IOException {
         BetterJsonObject localPacks = BetterJsonObject.getFromFile(localRepo);
         BetterJsonObject newLocalPackRepo = new BetterJsonObject();
 
         for (String k : localPacks.getAllKeys()) {
-            BetterJsonObject localPackEntry = localPacks.getObj(k);
+            BetterJsonObject localPack = localPacks.getObj(k);
 
-            PackEntry remotePack = remotePackEntries.get(k);
+            Pack remotePack = remotePackEntries.get(k);
             if (remotePack == null) {
                 LOGGER.warn("Local pack list contained unknown pack id: " + k);
                 continue;
             }
 
-            File packFile = new File(packDir, localPackEntry.optString("file"));
-            String currentVersion = localPackEntry.optString("version", "1.0");
+            File packFile = new File(packDir, localPack.optString("file"));
+            String currentVersion = localPack.optString("version", "1.0");
             if (!remotePack.getVersion().equalsIgnoreCase(currentVersion)) {
                 LOGGER.warn("Found outdated pack: " + remotePack.getId() + ". Current: " + currentVersion + " Latest: " + remotePack.getVersion());
 
@@ -153,22 +162,22 @@ public class ForgeryUpdater {
         newLocalPackRepo.writeToFile(localRepo);
     }
 
-    private File replaceMod(ModEntry mod, File file) throws IOException {
+    private File replaceMod(Mod mod, File file) throws IOException {
         Files.delete(file.toPath());
         File newFile = new File(file.getParentFile(), mod.getId() + "-" + mod.getVersion() + ".jar");
         HttpsUtils.downloadFile(mod.getDownloadUrl(), newFile);
         return newFile;
     }
 
-    private File replacePack(PackEntry pack, File file) throws IOException {
+    private File replacePack(Pack pack, File file) throws IOException {
         Files.delete(file.toPath());
         File newFile = new File(file.getParentFile(), pack.getDisplayName() + " \u00A7l" + pack.getVersion() + ".zip");
         HttpsUtils.downloadFile(pack.getDownloadUrl(), newFile);
         return newFile;
     }
 
-    public static ForgeryUpdater getInstance() {
-        if (instance == null) instance = new ForgeryUpdater();
+    public static ForgeryUtilities getInstance() {
+        if (instance == null) instance = new ForgeryUtilities();
 
         return instance;
     }
