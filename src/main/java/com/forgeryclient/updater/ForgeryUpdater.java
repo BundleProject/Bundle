@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Map;
+import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 
@@ -70,7 +71,7 @@ public class ForgeryUpdater {
 
             BetterJsonObject repoModEntry = new BetterJsonObject();
             repoModEntry.addProperty("version", remoteMod.getVersion());
-            repoModEntry.addProperty("file", modFile.getName());;
+            repoModEntry.addProperty("file", modFile.getName());
             newRepo.add(remoteMod.getId(), repoModEntry);
         }
 
@@ -81,7 +82,7 @@ public class ForgeryUpdater {
         LOGGER.info("Using fallback mod update method. You need to reinstall Forgery for the updater to work properly.");
         BetterJsonObject newLocalRepo = new BetterJsonObject();
 
-        for (File modFile : modsDir.listFiles((dir, name) -> !name.endsWith(".disabled"))) {
+        for (File modFile : Objects.requireNonNull(modsDir.listFiles((dir, name) -> !name.endsWith(".disabled")))) {
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry modInfo = jarFile.getEntry("mcmod.info");
                 if (modInfo != null) {
