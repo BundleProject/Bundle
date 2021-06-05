@@ -5,6 +5,7 @@ import co.uk.isxander.xanderlib.utils.json.BetterJsonObject;
 import com.forgeryclient.assetmanager.AssetManager;
 import com.forgeryclient.assetmanager.types.Mod;
 import com.forgeryclient.assetmanager.types.Pack;
+import com.forgeryclient.utilities.utils.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -18,6 +19,7 @@ import java.util.zip.ZipEntry;
 
 public class ForgeryUtilities {
 
+    public static final String VERSION = "1.1";
     public static final Logger LOGGER = LogManager.getLogger("Forgery Updater");
 
     private static ForgeryUtilities instance;
@@ -28,6 +30,17 @@ public class ForgeryUtilities {
             AssetManager repo = new AssetManager();
             LOGGER.info("Fetching remote repository...");
             repo.fetchFiles();
+
+            LOGGER.info("Checking for Utilities Update...");
+            if (!repo.getVersions().getUtilities().equalsIgnoreCase(VERSION)) {
+                LOGGER.info("Latest: " + repo.getVersions().getUtilities());
+                LOGGER.info("Current: "  + VERSION);
+
+                FileUtils.foreachDeep(new File(mcDir, "libraries/com/forgery-client/forgery-utilities"), null, File::deleteOnExit);
+                LOGGER.info("All utilities files will be deleted once Minecraft closes. Latest version will be re-downloaded on next launch. Utilities will not run on this launch.");
+                return;
+            }
+
             Map<String, Mod> remoteMods = repo.getModEntries();
             Map<String, Pack> remotePacks = repo.getPackEntries();
 

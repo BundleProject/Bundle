@@ -28,7 +28,7 @@ configurations {
 }
 
 dependencies {
-    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: 'bff667a') {
+    include (group: 'com.github.forgery-client', name: 'asset-manager-java', version: '617066e') {
         exclude module: 'gson'
     }
 
