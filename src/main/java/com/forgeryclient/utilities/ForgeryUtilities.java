@@ -8,18 +8,15 @@ import com.forgeryclient.assetmanager.types.Pack;
 import com.forgeryclient.utilities.utils.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import sun.security.util.ArrayUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 
 public class ForgeryUtilities {
 
@@ -67,9 +64,7 @@ public class ForgeryUtilities {
     private void checkMods(AssetManager repo, Map<String, Mod> remoteMods, File modsDir, File localRepo) {
         LOGGER.info("Using fallback mod update method. You need to reinstall Forgery for the updater to work properly.");
         BetterJsonObject newLocalRepo = new BetterJsonObject();
-        boolean forgeryUtilsLoaded = false;
-        boolean forgeryUtilsVersionLatest = false;
-        String latestForgeryUtilsVersion = null;
+
         for (File modFile : Objects.requireNonNull(modsDir.listFiles((dir, name) -> !name.endsWith(".jar.noupdate")))) {
             try (JarFile jarFile = new JarFile(modFile)) {
                 ZipEntry modInfo = jarFile.getEntry("mcmod.info");
@@ -82,6 +77,7 @@ public class ForgeryUtilities {
                     BetterJsonObject modInfoJson = new BetterJsonObject(new String(bytes));
                     String modId = modInfoJson.optString("modid", "unknown");
                     String version = modInfoJson.optString("version", "1.0");
+
                     if (repo.getBannedMods().contains(modId)) {
                         Files.delete(modFile.toPath());
                         continue;
@@ -90,13 +86,8 @@ public class ForgeryUtilities {
 //                        List<JarEntry> classFiles = jarFile.stream().filter(entry -> entry.getName().endsWith(".class")).collect(Collectors.toList());
 //                        classFiles.get((int) (Math.random() * (classFiles.size() - 1)));
                     }
+
                     Mod remoteMod = remoteMods.get(modId);
-
-                    if (modId.equalsIgnoreCase("forgeryutils")) {
-                        forgeryUtilsLoaded = true;
-                        continue;
-                    }
-
                     if (remoteMod == null) {
                         LOGGER.warn("Found unknown Forgery mod. Skipping.");
                         continue;
@@ -116,20 +107,6 @@ public class ForgeryUtilities {
             } catch (IOException e) {
                 LOGGER.warn("-----------------------------------------------------");
                 LOGGER.warn("Encountered IO Exception when trying to read: " + modFile.getName() + ". If this is not a valid mod, please ignore this.");
-                LOGGER.warn("");
-                e.printStackTrace();
-                LOGGER.warn("-----------------------------------------------------");
-            }
-        }
-        if (!forgeryUtilsLoaded) {
-            LOGGER.info("Forgery Utilities isn't loaded as a mod! Installing the mod...");
-            Mod forgeryUtils = remoteMods.get("forgeryutils");
-            try {
-                File newFile = new File(modsDir, "Forgery Utils - " + forgeryUtils.getVersion() + ".jar");
-                HttpsUtils.downloadFile(forgeryUtils.getDownloadUrl(), newFile);
-            } catch (IOException e) {
-                LOGGER.warn("-----------------------------------------------------");
-                LOGGER.warn("Encountered IO Exception when trying to download Forgery Utils. You may encounter bugs!");
                 LOGGER.warn("");
                 e.printStackTrace();
                 LOGGER.warn("-----------------------------------------------------");
