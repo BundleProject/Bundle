@@ -37,7 +37,7 @@ public class ForgeryUtilities {
                 LOGGER.info("Latest: " + repo.getVersions().getUtilities());
                 LOGGER.info("Current: "  + VERSION);
 
-                FileUtils.foreachDeep(new File(mcDir, "libraries/com/forgery-client/forgery-utilities"), null, File::deleteOnExit);
+                FileUtils.foreachDeep(new File(mcDir, "libraries/com/github/forgery-client/forgery-utilities"), null, File::deleteOnExit);
                 LOGGER.info("All utilities files will be deleted once Minecraft closes. Latest version will be re-downloaded on next launch. Utilities will not run on this launch.");
                 return;
             }
