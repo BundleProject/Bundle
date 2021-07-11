@@ -28,6 +28,7 @@ public class ForgeryUtilities {
     public void start(File mcDir) {
         LOGGER.info("Starting Forgery Updater...");
         try {
+            File fcDir = new File(mcDir, "forgery");
             AssetManager repo = new AssetManager();
             LOGGER.info("Fetching remote repository...");
             repo.fetchFiles();
@@ -46,13 +47,13 @@ public class ForgeryUtilities {
             Map<String, Pack> remotePacks = repo.getPackEntries();
 
             LOGGER.info("Updating mods...");
-            File modsDir = new File(mcDir, "mods");
-            File localModRepo = new File(mcDir, ".forgery");
+            File modsDir = new File(fcDir, "mods");
+            File localModRepo = new File(fcDir, ".forgery-mods");
             checkMods(repo, remoteMods, modsDir, localModRepo);
 
             LOGGER.info("Updating packs...");
-            File packDir = new File(mcDir, "resourcepacks");
-            File localPackRepo = new File(mcDir, ".forgery-packs");
+            File packDir = new File(fcDir, "resourcepacks");
+            File localPackRepo = new File(fcDir, ".forgery-packs");
             if (localPackRepo.exists()) normalPackUpdate(remotePacks, packDir, localPackRepo);
             else LOGGER.error("Failed to update packs. Local repository could not be found.");
 
