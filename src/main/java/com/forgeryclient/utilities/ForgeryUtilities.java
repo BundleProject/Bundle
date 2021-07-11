@@ -57,7 +57,7 @@ public class ForgeryUtilities {
             if (localPackRepo.exists()) normalPackUpdate(remotePacks, packDir, localPackRepo);
             else LOGGER.error("Failed to update packs. Local repository could not be found.");
 
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }
