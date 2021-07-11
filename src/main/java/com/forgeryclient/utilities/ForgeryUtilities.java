@@ -47,7 +47,7 @@ public class ForgeryUtilities {
 
             LOGGER.info("Updating mods...");
             File modsDir = new File(mcDir, "mods");
-            File localModRepo = new File(mcDir, ".forgery-mods");
+            File localModRepo = new File(mcDir, ".forgery");
             checkMods(repo, remoteMods, modsDir, localModRepo);
 
             LOGGER.info("Updating packs...");
