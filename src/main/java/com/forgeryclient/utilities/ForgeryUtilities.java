@@ -6,6 +6,7 @@ import com.forgeryclient.assetmanager.AssetManager;
 import com.forgeryclient.assetmanager.types.Mod;
 import com.forgeryclient.assetmanager.types.Pack;
 import com.forgeryclient.utilities.utils.FileUtils;
+import com.google.gson.JsonParser;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -75,7 +76,7 @@ public class ForgeryUtilities {
                     is.read(bytes, 0, is.available());
                     is.close();
 
-                    BetterJsonObject modInfoJson = new BetterJsonObject(new String(bytes));
+                    BetterJsonObject modInfoJson = new BetterJsonObject(new JsonParser().parse(new String(bytes)).getAsJsonArray().get(0).getAsJsonObject());
                     String modId = modInfoJson.optString("modid", "unknown");
                     String version = modInfoJson.optString("version", "1.0");
 
