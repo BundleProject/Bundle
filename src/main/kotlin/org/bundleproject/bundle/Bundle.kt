@@ -6,7 +6,7 @@ import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.*
-import org.bundleproject.bundle.utils.FileUtils
+import org.bundleproject.bundle.utils.foreachFileDeep
 import java.io.File
 import java.io.InputStreamReader
 import java.nio.file.Files
@@ -25,7 +25,7 @@ object Bundle {
 
         modsDir = File(gameDir, "mods")
 
-        for (modFile in FileUtils.foreachFileDeep(modsDir)) {
+        for (modFile in foreachFileDeep(modsDir)) {
             val localMod = getModInfo(modFile) ?: continue
             if (localMod.platform != PLATFORM) continue
 
