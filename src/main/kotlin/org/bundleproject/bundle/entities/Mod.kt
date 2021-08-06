@@ -17,7 +17,7 @@ data class Mod(
 
     @Transient val semver = Version.valueOf(version)
 
-    @Transient val latestUrl = "https://api.bundle.xander.dev/v1/mods/$platform/$id/$minecraftVersion/latest/"
+    @Transient val latestUrl = "https://api.bundle.isxander.dev/v1/mods/$platform/$id/$minecraftVersion/latest/"
     @Transient val latestDownloadUrl = latestUrl + "download"
 
     companion object {

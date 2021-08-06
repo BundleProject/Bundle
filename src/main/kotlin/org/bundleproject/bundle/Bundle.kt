@@ -21,7 +21,8 @@ object Bundle {
 
     fun start(gameDir: File, minecraftVersion: String) {
         println("Starting Bundle...")
-        println("By Xander, Chachy and Wyvest")
+        println("By Xander, Chachy and Wyvest and all contributors!")
+        println("https://github.com/BundleProject")
 
         val version = Version.valueOf(minecraftVersion.let { if (it.contentEquals("MultiMC5")) "x.x.x" else it })
         modsDir = File(gameDir, "mods")
