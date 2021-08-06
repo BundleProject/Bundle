@@ -28,7 +28,6 @@ import kotlin.concurrent.withLock
  * and does its actions and then begins to launch the game
  * once it has finished.
  *
- * @author ChachyDev
  * @since 0.0.1
  */
 class Bundle(private val gameDir: File, private val version: Version, modFolderName: String) {
