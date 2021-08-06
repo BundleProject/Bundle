@@ -26,7 +26,7 @@ suspend fun main(args: Array<String>) {
     }
 }
 
-operator fun Array<String>.get(arg: String) = getOrNull(indexOf("--$arg") + 1)
+private operator fun Array<String>.get(arg: String) = getOrNull(indexOf("--$arg") + 1)
 
 private fun findEntrypoint(): Class<*> {
     entrypoints.forEach {
