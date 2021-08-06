@@ -8,11 +8,13 @@ import org.bundleproject.bundle.utils.API_VERSION
 import org.bundleproject.bundle.utils.http
 
 data class Mod(
+    @Transient var enabled: Boolean = true,
+    val name: String,
     val id: String,
     val version: Version,
     val minecraftVersion: Version,
     val fileName: String,
-    @Transient val platform: Platform,
+    val platform: Platform,
 ) {
     @Transient
     val latestUrl = "$API/$API_VERSION/mods/$id/$platform/$minecraftVersion/latest/"
