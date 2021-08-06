@@ -209,6 +209,11 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
         }
     }
 
+    /**
+     * Checks if Bundle is outdated.
+     *
+     * @since 0.0.3
+     */
     private suspend fun checkOutdated() {
         val versions = JsonParser.parseString(http.get<String>("$API/$API_VERSION/bundle/version")).asJsonObject
 
