@@ -49,12 +49,10 @@ object Bundle {
 
     private fun getModInfo(modFile: File): Mod? {
         JarFile(modFile).use { jar ->
-            if (jar.manifest.mainAttributes.getValue("Bundle-No-Update") != null)
-                return null
-
             jar.getJarEntry("bundle.project.json")?.let getJarEntry@{ modInfo ->
                 InputStreamReader(jar.getInputStream(modInfo)).use {
                     val json = JsonParser.parseReader(it).asJsonObject
+                    if (json.get("update")?.asBoolean == false) return@getModInfo null
                     return@getModInfo Mod(
                         json.get("id")?.asString ?: return@getJarEntry,
                         json.get("version")?.asString ?: return@getJarEntry,
