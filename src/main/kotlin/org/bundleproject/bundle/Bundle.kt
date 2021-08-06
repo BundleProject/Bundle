@@ -47,6 +47,19 @@ object Bundle {
             if (jar.manifest.mainAttributes.getValue("Bundle-No-Update") != null)
                 return null
 
+            jar.getJarEntry("bundle.project.json")?.let getJarEntry@{ modInfo ->
+                InputStreamReader(jar.getInputStream(modInfo)).use {
+                    val json = JsonParser.parseReader(it).asJsonObject
+                    return@getModInfo Mod(
+                        json.get("id")?.asString ?: return@getJarEntry,
+                        json.get("version")?.asString ?: return@getJarEntry,
+                        json.get("minecraft_version")?.asString ?: return@getJarEntry,
+                        modFile.name,
+                        Platform.valueOf(json.get("platform")?.asString ?: return@getJarEntry),
+                    )
+                }
+            }
+
             jar.getJarEntry("fabric.mod.json")?.let { modInfo ->
                 InputStreamReader(jar.getInputStream(modInfo)).use {
                     val json = JsonParser.parseReader(it).asJsonObject
