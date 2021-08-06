@@ -15,7 +15,7 @@ data class Mod(
     @Transient val platform: Platform,
 ) {
     @Transient
-    val latestUrl = "$API/$API_VERSION/mods/$platform/$id/$minecraftVersion/latest/"
+    val latestUrl = "$API/$API_VERSION/mods/$id/$platform/$minecraftVersion/latest/"
     @Transient
     val latestDownloadUrl = latestUrl + "download"
 
