@@ -21,7 +21,7 @@ suspend fun main(args: Array<String>) {
             }
         }
 
-        Bundle.start(File(args["gameDir"] ?: "."), Version.valueOf(version), "mods")
+        Bundle(File(args["gameDir"] ?: "."), Version.valueOf(version), "mods")
         getMethod("main", Array<String>::class.java).invoke(null, args)
     }
 }
