@@ -13,8 +13,10 @@ import java.io.File
 import java.io.InputStreamReader
 import java.net.URL
 import java.nio.file.Files
+import java.util.concurrent.locks.ReentrantLock
 import java.util.jar.JarFile
 import javax.swing.*
+import kotlin.concurrent.withLock
 
 /**
  * The Bundle object holds the code to start the version checking
@@ -30,13 +32,12 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
 
     private val modsDir = File(gameDir, modFolderName)
 
-    init {
+    suspend fun start() {
         try {
             openFrame(getOutdated())
         } catch (e: Throwable) {
             e.printStackTrace()
         }
-
     }
 
     /**
@@ -126,62 +127,63 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.2
      */
-    private fun openFrame(mods: MutableList<Pair<Mod, Mod>>) {
-        var halt = true
+    private suspend fun openFrame(mods: MutableList<Pair<Mod, Mod>>) {
+        val lock = ReentrantLock()
+        val condition = lock.newCondition()
 
-        val frame = JFrame("Bundle")
-        frame.iconImage = getResourceImage("/bundle.png")
-        frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
+        lock.withLock {
+            val frame = JFrame("Bundle")
+            frame.iconImage = getResourceImage("/bundle.png")
+            frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
-        val gbl = GridBagLayout()
-        val gbc = GridBagConstraints()
-        frame.layout = gbl
+            val gbl = GridBagLayout()
+            val gbc = GridBagConstraints()
+            frame.layout = gbl
 
-        gbc.fill = GridBagConstraints.HORIZONTAL
+            gbc.fill = GridBagConstraints.HORIZONTAL
 
-        val rows = mutableListOf<Array<Any>>()
-        for ((local, remote) in mods) {
-            rows.add(arrayOf(
-                JCheckBox("", true).also { it.addActionListener { remote.enabled = false } },
-                remote.name,
-                local.version.toString(),
-                remote.version.toString(),
-                // TODO: 06/08/2021 get download url host because sk1er annoying
-            ))
+            val rows = mutableListOf<Array<Any>>()
+            for ((local, remote) in mods) {
+                rows.add(arrayOf(
+                    JCheckBox("", true).also { it.addActionListener { remote.enabled = false } },
+                    remote.name,
+                    local.version.toString(),
+                    remote.version.toString(),
+                    // TODO: 06/08/2021 get download url host because sk1er annoying
+                ))
+            }
+            val table = JTable(rows.toTypedArray(), arrayOf("", "Mod", "Current", "Remote"))
+            gbc.gridx = 0
+            gbc.gridy = 0
+            gbc.gridwidth = 2
+            gbc.gridheight = 4
+            frame.add(table, gbc)
+
+            val skipButton = JButton("Skip")
+            skipButton.addActionListener {
+                mods.clear()
+                frame.dispose()
+                condition.signal()
+            }
+            gbc.gridx = 0
+            gbc.gridy = 1
+            gbc.gridwidth = 2
+            gbc.gridheight = 1
+            frame.add(skipButton, gbc)
+
+            val downloadButton = JButton("Update")
+            downloadButton.addActionListener {
+                updateMods(mods.filter { it.second.enabled })
+                frame.dispose()
+                condition.signal()
+            }
+            gbc.gridx = 1
+            gbc.gridy = 1
+            gbc.gridwidth = 2
+            gbc.gridheight = 1
+            frame.add(downloadButton, gbc)
+            condition.await()
         }
-        val table = JTable(rows.toTypedArray(), arrayOf("", "Mod", "Current", "Remote"))
-        gbc.gridx = 0
-        gbc.gridy = 0
-        gbc.gridwidth = 2
-        gbc.gridheight = 4
-        frame.add(table, gbc)
-
-        val skipButton = JButton("Skip")
-        skipButton.addActionListener {
-            mods.clear()
-            frame.dispose()
-            halt = false
-        }
-        gbc.gridx = 0
-        gbc.gridy = 1
-        gbc.gridwidth = 2
-        gbc.gridheight = 1
-        frame.add(skipButton, gbc)
-
-        val downloadButton = JButton("Update")
-        downloadButton.addActionListener {
-            updateMods(mods.filter { it.second.enabled })
-            frame.dispose()
-            halt = false
-        }
-        gbc.gridx = 1
-        gbc.gridy = 1
-        gbc.gridwidth = 2
-        gbc.gridheight = 1
-        frame.add(downloadButton, gbc)
-
-        // no java synchronized and idfk coroutines
-        while (halt) {}
     }
 
     /**

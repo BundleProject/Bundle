@@ -1,6 +1,7 @@
 plugins {
     id "org.jetbrains.kotlin.jvm" version "1.5.21"
     id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "maven-publish"
 }
 
 group "org.bundleproject"
@@ -16,8 +17,6 @@ compileJava.options.encoding = "UTF-8"
 
 repositories {
     mavenCentral()
-
-    maven { url "https://libraries.minecraft.net/" }
     maven { url "https://jitpack.io/" }
 }
 
@@ -27,12 +26,14 @@ configurations {
 }
 
 dependencies {
+    include "com.jetbrains:kotlin-stdlib-jdk8:1.5.21"
+
     include "com.google.code.gson:gson:2.8.7"
     include "com.github.zafarkhaja:jsemver:0.9.0"
 
-    implementation "io.ktor:ktor-client-gson:1.6.0"
-    implementation "io.ktor:ktor-client-core:1.6.0"
-    implementation "io.ktor:ktor-client-apache:1.6.0"
+    implementation "io.ktor:ktor-client-gson:1.6.2"
+    implementation "io.ktor:ktor-client-core:1.6.2"
+    implementation "io.ktor:ktor-client-apache:1.6.2"
 }
 
 shadowJar {
