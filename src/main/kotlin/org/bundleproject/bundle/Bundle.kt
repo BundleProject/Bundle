@@ -24,22 +24,27 @@ object Bundle {
         println("By Xander, Chachy and Wyvest and all contributors!")
         println("https://github.com/BundleProject")
 
-        val version = Version.valueOf(minecraftVersion.let { if (it.contentEquals("MultiMC5")) "x.x.x" else it })
-        modsDir = File(gameDir, "mods")
+        try {
+            val version = Version.valueOf(minecraftVersion.let { if (it.contentEquals("MultiMC5")) "x.x.x" else it })
+            modsDir = File(gameDir, "mods")
 
-        for (modFile in foreachFileDeep(modsDir)) {
-            val localMod = getModInfo(modFile) ?: continue
-            if (!localMod.semver.equals(version)) continue
+            for (modFile in foreachFileDeep(modsDir)) {
+                val localMod = getModInfo(modFile) ?: continue
+                if (!localMod.semver.equals(version)) continue
 
-            val remoteMod = Mod.fromUrl(localMod.latestUrl)
+                val remoteMod = Mod.fromUrl(localMod.latestUrl)
 
-            // out of date
-            if (remoteMod.semver.greaterThan(localMod.semver)) {
-                val parent = modFile.parentFile
-                Files.delete(modFile.toPath())
-                Files.write(File(parent, remoteMod.fileName).toPath(), runBlocking { HTTP_CLIENT.get<ByteArray>(remoteMod.latestDownloadUrl) })
+                // out of date
+                if (remoteMod.semver.greaterThan(localMod.semver)) {
+                    val parent = modFile.parentFile
+                    Files.delete(modFile.toPath())
+                    Files.write(File(parent, remoteMod.fileName).toPath(), runBlocking { HTTP_CLIENT.get<ByteArray>(remoteMod.latestDownloadUrl) })
+                }
             }
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
+
     }
 
     private fun getModInfo(modFile: File): Mod? {
