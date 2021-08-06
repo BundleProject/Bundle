@@ -208,8 +208,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
                     val current = File(modsDir, local.fileName)
 
                     Files.delete(current.toPath())
-                    runBlocking { URL(remote.latestDownloadUrl) }
-                        .download(File(modsDir, remote.fileName))
+                    URL(remote.latestDownloadUrl).download(File(modsDir, remote.fileName))
                 }
             }.awaitAll()
         }
