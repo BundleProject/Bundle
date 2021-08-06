@@ -26,7 +26,7 @@ configurations {
 }
 
 dependencies {
-    include "com.jetbrains:kotlin-stdlib-jdk8:1.5.21"
+    include "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.21"
 
     include "com.google.code.gson:gson:2.8.7"
     include "com.github.zafarkhaja:jsemver:0.9.0"
