@@ -1,4 +1,2 @@
 # Bundle
-A Minecraft Tweaker that updates resource packs and forge
-mods invisibly while providing other utilities such as anonymous
-statistics and managing game files.
+A program that hooks into minecraft with any mod loader that updates all of your mods with a cool gui.
