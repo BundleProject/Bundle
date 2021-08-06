@@ -19,13 +19,12 @@ object Bundle {
 
     private lateinit var modsDir: File
 
-    fun start(gameDir: File, minecraftVersion: String) {
+    fun start(gameDir: File, version: Version) {
         println("Starting Bundle...")
         println("By Xander, Chachy and Wyvest and all contributors!")
         println("https://github.com/BundleProject")
 
         try {
-            val version = Version.valueOf(minecraftVersion.let { if (it.contentEquals("MultiMC5")) "x.x.x" else it })
             modsDir = File(gameDir, "mods")
 
             for (modFile in foreachFileDeep(modsDir)) {

@@ -24,7 +24,7 @@ fun main(args: Array<String>) {
 
     Bundle.start(
         File(getArgument(args, "gameDir") ?: "."),
-        getArgument(args, "version") ?: "x.x.x",
+        Version.valueOf((getArgument(args, "version") ?: "x.x.x").let { if (it.contentEquals("MultiMC5")) "x.x.x" else it }),
     )
     entryPoint.getMethod("main", Array<String>::class.java).invoke(null, args)
 }
