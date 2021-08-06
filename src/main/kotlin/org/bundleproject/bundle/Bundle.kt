@@ -4,6 +4,8 @@ import com.formdev.flatlaf.FlatDarkLaf
 import com.github.zafarkhaja.semver.Version
 import com.google.gson.JsonParser
 import io.ktor.client.request.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.entities.platform.Platform
@@ -200,13 +202,18 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      * @since 0.0.2
      */
     private fun updateMods(mods: List<Pair<Mod, Mod>>) {
-        for ((local, remote) in mods) {
-            val current = File(modsDir, local.fileName)
+        launchCoroutine("Mod Updater") {
+            mods.map { (local, remote) ->
+                async {
+                    val current = File(modsDir, local.fileName)
 
-            Files.delete(current.toPath())
-            runBlocking { URL(remote.latestDownloadUrl) }
-                .download(File(modsDir, remote.fileName))
+                    Files.delete(current.toPath())
+                    runBlocking { URL(remote.latestDownloadUrl) }
+                        .download(File(modsDir, remote.fileName))
+                }
+            }.awaitAll()
         }
+
     }
 
     /**

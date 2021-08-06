@@ -1,5 +1,9 @@
 package org.bundleproject.bundle.utils
 
+import kotlinx.coroutines.CoroutineName
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.bundleproject.bundle.Bundle
 import java.awt.image.BufferedImage
 import java.io.File
@@ -26,3 +30,5 @@ fun URL.download(dest: File): File {
 fun getResourceImage(path: String): BufferedImage =
     ImageIO.read(Bundle::class.java.getResource(path))
 
+fun launchCoroutine(name: String, block: suspend CoroutineScope.() -> Unit) =
+    CoroutineScope(Dispatchers.IO + CoroutineName(name)).launch(block = block)
