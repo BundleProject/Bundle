@@ -12,8 +12,7 @@ data class Mod(
     val version: String,
     val minecraftVersion: String,
     val fileName: String,
-    @Transient val local: Boolean = true,
-    @Transient val platform: Platform
+    @Transient val platform: Platform,
 ) {
 
     @Transient val semver = Version.valueOf(version)

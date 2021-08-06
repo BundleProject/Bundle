@@ -1,5 +1,6 @@
 package org.bundleproject.bundle
 
+import com.github.zafarkhaja.semver.Version
 import com.google.gson.JsonParser
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
@@ -15,19 +16,19 @@ import java.util.jar.JarFile
 object Bundle {
 
     val HTTP_CLIENT = HttpClient(CIO)
-    val PLATFORM = identifyPlatform()
 
     private lateinit var modsDir: File
 
-    fun start(gameDir: File) {
+    fun start(gameDir: File, minecraftVersion: String) {
         println("Starting Bundle...")
         println("By Xander, Chachy and Wyvest")
 
+        val version = Version.valueOf(minecraftVersion.let { if (it.contentEquals("MultiMC5")) "x.x.x" else it })
         modsDir = File(gameDir, "mods")
 
         for (modFile in foreachFileDeep(modsDir)) {
             val localMod = getModInfo(modFile) ?: continue
-            if (localMod.platform != PLATFORM) continue
+            if (!localMod.semver.equals(version)) continue
 
             val remoteMod = Mod.fromUrl(localMod.latestUrl)
 
@@ -53,8 +54,7 @@ object Bundle {
                         json.get("version")?.asString ?: return null,
                         json.get("depends").asJsonObject.get("minecraft")?.asString ?: return null,
                         modFile.name,
-                        true,
-                        Platform.FABRIC
+                        Platform.FABRIC,
                     )
                 }
             }
@@ -67,19 +67,13 @@ object Bundle {
                         json.get("version")?.asString ?: return null,
                         json.get("mcversion")?.asString ?: return null,
                         modFile.name,
-                        true,
-                        Platform.FORGE
+                        Platform.FORGE,
                     )
                 }
             }
         }
 
         return null
-    }
-
-    private fun identifyPlatform(): Platform {
-        // TODO: 05/08/2021 maybe parameter from entrypoint?
-        return Platform.FORGE
     }
 
 }
