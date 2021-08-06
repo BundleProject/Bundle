@@ -6,7 +6,7 @@ on:
       - '*'
     paths-ignore:
       - 'README.md'
-      - 'LICENSE'
+      - 'LICENSE.md'
       - '.gitignore'
       - '.gitattributes'
   pull_request:
