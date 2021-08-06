@@ -1,12 +1,13 @@
 package org.bundleproject.bundle
 
+import com.formdev.flatlaf.FlatDarkLaf
 import com.github.zafarkhaja.semver.Version
 import com.google.gson.JsonParser
+import io.ktor.client.request.*
 import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.entities.platform.Platform
-import org.bundleproject.bundle.utils.download
-import org.bundleproject.bundle.utils.getResourceImage
+import org.bundleproject.bundle.utils.*
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
 import java.io.File
@@ -34,7 +35,13 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
 
     suspend fun start() {
         try {
+
+            try { UIManager.setLookAndFeel(FlatDarkLaf()) }
+            catch (e: Throwable) { e.printStackTrace() }
+
+            checkOutdated()
             openFrame(getOutdated())
+
         } catch (e: Throwable) {
             e.printStackTrace()
         }
@@ -127,7 +134,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.2
      */
-    private suspend fun openFrame(mods: MutableList<Pair<Mod, Mod>>) {
+    private fun openFrame(mods: MutableList<Pair<Mod, Mod>>) {
         val lock = ReentrantLock()
         val condition = lock.newCondition()
 
@@ -199,6 +206,14 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
             Files.delete(current.toPath())
             runBlocking { URL(remote.latestDownloadUrl) }
                 .download(File(modsDir, remote.fileName))
+        }
+    }
+
+    private suspend fun checkOutdated() {
+        val versions = JsonParser.parseString(http.get<String>("$API/$API_VERSION/bundle/version")).asJsonObject
+
+        if (Version.valueOf(versions.get("updater").asString).greaterThan(VERSION)) {
+            JOptionPane.showMessageDialog(null, "Bundle is outdated. Please re-run the installer to get the update!", "Bundle", JOptionPane.WARNING_MESSAGE)
         }
     }
 
