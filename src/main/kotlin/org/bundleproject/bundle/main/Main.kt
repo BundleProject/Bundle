@@ -14,11 +14,7 @@ val entrypoints = arrayOf(
 suspend fun main(args: Array<String>) {
     findEntrypoint().apply {
         val version = (args["version"] ?: "x.x.x").let {
-            return@let if (it == "MultiMC5") {
-                "x.x.x"
-            } else {
-                it
-            }
+            if (it == "MultiMC5") { "x.x.x" } else { it }
         }
 
         Bundle(File(args["gameDir"] ?: "."), Version.valueOf(version), "mods").start()

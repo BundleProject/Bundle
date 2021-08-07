@@ -1,6 +1,6 @@
 package org.bundleproject.bundle
 
-import com.formdev.flatlaf.FlatDarkLaf
+import com.formdev.flatlaf.FlatLightLaf
 import com.github.zafarkhaja.semver.Version
 import com.google.gson.JsonParser
 import io.ktor.client.request.*
@@ -9,9 +9,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.entities.platform.Platform
+import org.bundleproject.bundle.gui.LoadingGui
+import org.bundleproject.bundle.gui.UpdateOverviewGui
 import org.bundleproject.bundle.utils.*
-import java.awt.GridBagConstraints
-import java.awt.GridBagLayout
 import java.io.File
 import java.io.InputStreamReader
 import java.net.URL
@@ -36,12 +36,20 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
 
     suspend fun start() {
         try {
-
-            try { UIManager.setLookAndFeel(FlatDarkLaf()) }
+            try { UIManager.setLookAndFeel(FlatLightLaf()) }
             catch (e: Throwable) { e.printStackTrace() }
 
             checkOutdated()
-            openFrame(getOutdated())
+            val outdated = getOutdatedMods()
+
+            if (outdated.isEmpty()) return
+
+            val lock = ReentrantLock()
+            val condition = lock.newCondition()
+            lock.withLock {
+                UpdateOverviewGui(this, outdated, condition)
+                condition.await()
+            }
 
         } catch (e: Throwable) {
             e.printStackTrace()
@@ -55,7 +63,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.1
      */
-    private fun getOutdated(): MutableList<Pair<Mod, Mod>> {
+    private fun getOutdatedMods(): MutableList<Pair<Mod, Mod>> {
         val outdated = mutableListOf<Pair<Mod, Mod>>()
         for (mod in modsDir.walkTopDown()) {
             val localMod = getModInfo(mod) ?: continue
@@ -128,76 +136,6 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
         return null
     }
 
-    /**
-     * Allows the user to pick which mods they
-     * would like to update and verify that
-     * it is updating correctly.
-     *
-     * @since 0.0.2
-     */
-    private fun openFrame(mods: MutableList<Pair<Mod, Mod>>) {
-        val lock = ReentrantLock()
-        val condition = lock.newCondition()
-
-        lock.withLock {
-            val frame = JFrame("Bundle")
-            frame.iconImage = getResourceImage("/bundle.png")
-            frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
-
-            val gbl = GridBagLayout()
-            val gbc = GridBagConstraints()
-            frame.layout = gbl
-
-            gbc.fill = GridBagConstraints.HORIZONTAL
-
-            val rows = mutableListOf<Array<Any>>()
-            for ((local, remote) in mods) {
-                rows.add(arrayOf(
-                    JCheckBox("", true).also { it.addActionListener { remote.enabled = false } },
-                    remote.name,
-                    local.version.toString(),
-                    remote.version.toString(),
-                    // TODO: 06/08/2021 get download url host because sk1er annoying
-                ))
-            }
-            val table = JTable(rows.toTypedArray(), arrayOf("", "Mod", "Current", "Remote"))
-            gbc.gridx = 0
-            gbc.gridy = 0
-            gbc.gridwidth = 2
-            gbc.gridheight = 4
-            frame.add(table, gbc)
-
-            val skipButton = JButton("Skip")
-            skipButton.addActionListener {
-                mods.clear()
-                frame.dispose()
-                condition.signal()
-            }
-            gbc.gridx = 0
-            gbc.gridy = 1
-            gbc.gridwidth = 2
-            gbc.gridheight = 1
-            frame.add(skipButton, gbc)
-
-            val downloadButton = JButton("Update")
-            downloadButton.addActionListener {
-                updateMods(mods.filter { it.second.enabled })
-                frame.dispose()
-                condition.signal()
-            }
-            gbc.gridx = 1
-            gbc.gridy = 1
-            gbc.gridwidth = 2
-            gbc.gridheight = 1
-            downloadButton.requestFocus()
-            frame.add(downloadButton, gbc)
-
-            frame.pack()
-            frame.isVisible = true
-
-            condition.await()
-        }
-    }
 
     /**
      * Goes through a list of mods and linearly deletes
@@ -205,8 +143,10 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.2
      */
-    private fun updateMods(mods: List<Pair<Mod, Mod>>) {
+    fun updateMods(mods: List<Pair<Mod, Mod>>) {
         launchCoroutine("Mod Updater") {
+            val loading = LoadingGui(mods.size)
+            loading.isVisible = true
             mods.map { (local, remote) ->
                 async {
                     val current = File(modsDir, local.fileName)
@@ -214,6 +154,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
                     Files.delete(current.toPath())
                     runBlocking { URL(remote.latestDownloadUrl) }
                         .download(File(modsDir, remote.fileName))
+                    loading.finish()
                 }
             }.awaitAll()
         }
