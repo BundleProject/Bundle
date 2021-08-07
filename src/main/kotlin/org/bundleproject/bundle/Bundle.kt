@@ -189,7 +189,12 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
             gbc.gridy = 1
             gbc.gridwidth = 2
             gbc.gridheight = 1
+            downloadButton.requestFocus()
             frame.add(downloadButton, gbc)
+
+            frame.pack()
+            frame.isVisible = true
+
             condition.await()
         }
     }
