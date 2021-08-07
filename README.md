@@ -10,6 +10,7 @@ the same purpose. The difference is, it can guarantee that all the version
 and other metadata matches the repository/api.
 
 Here is an example of a `bundle.project.json` for the mod EvergreenHUD
+Note that the version **MUST** follow [semver specification](https://semver.org).
 ```json
 {
   "id": "evergreenhud",
