@@ -12,7 +12,7 @@ import javax.swing.WindowConstants
  *
  * @since 0.0.4
  */
-class LoadingGui(private val updateCount: Int) : JFrame("Updating Mods") {
+class LoadingGui(private val updateCount: Int) : JFrame("Updating All Of Your Compatable Mods") {
 
     private val progressBar: JProgressBar
 
