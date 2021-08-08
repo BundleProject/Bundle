@@ -8,6 +8,8 @@ val entrypoints = arrayOf(
     "net.fabricmc.loader.launch.knot.KnotClient",
     "cpw.mods.bootstraplauncher.BootstrapLauncher",
     "net.minecraft.launchwrapper.Launch",
+    "org.bookmc.loader.impl.launch.Quilt",
+    "com.github.glassmc.loader.client.GlassClientMain",
     "net.minecraft.client.main.Main", // just in case user installed to vanilla
 )
 
