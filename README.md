@@ -19,3 +19,5 @@ Note that the version **MUST** follow [semver specification](https://semver.org)
   "platform": "forge"
 }
 ```
+### Community
+Join our discord server https://discord.gg/gzJDUt3a8w and get support or talk about general topics and Bundle!
