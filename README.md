@@ -20,4 +20,4 @@ Note that the version **MUST** follow [semver specification](https://semver.org)
 }
 ```
 ### Community
-Join our very Cool Community discord server https://discord.gg/gzJDUt3a8w And talk with us about bundle or other things you find interesting!
+Join our discord server https://discord.gg/gzJDUt3a8w and get support or talk about general topics and Bundle!
