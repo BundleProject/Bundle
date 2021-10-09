@@ -2,7 +2,7 @@ plugins {
     id "org.jetbrains.kotlin.jvm" version "1.5.30"
     id "com.github.johnrengelman.shadow" version "7.1.0"
     id "maven-publish"
-    id "com.github.gmazzo.buildconfig" version "3.0.2"
+    id "com.github.gmazzo.buildconfig" version "3.0.3"
 }
 
 group "org.bundleproject"
