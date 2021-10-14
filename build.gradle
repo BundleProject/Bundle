@@ -41,7 +41,7 @@ dependencies {
     include "com.google.code.gson:gson:2.8.8"
     include "com.github.zafarkhaja:jsemver:0.9.0"
 
-    include 'com.formdev:flatlaf:1.6'
+    include 'com.formdev:flatlaf:1.6.1'
 
     include "io.ktor:ktor-client-gson:1.6.4"
     include "io.ktor:ktor-client-core:1.6.4"
