@@ -33,7 +33,6 @@ import kotlin.concurrent.withLock
  * @since 0.0.1
  */
 class Bundle(private val gameDir: File, private val version: Version, modFolderName: String) {
-
     private val modsDir = File(gameDir, modFolderName)
 
     suspend fun start() {
@@ -174,6 +173,5 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
                 }
             }.awaitAll()
         }
-
     }
 }
