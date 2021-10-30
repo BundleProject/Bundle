@@ -70,7 +70,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.1
      */
-    private suspend fun getOutdatedMods(): MutableList<Pair<Mod, RemoteMod>> {
+    private suspend fun getOutdatedMods(): MutableList<ModPair> {
         val localMods = mutableListOf<Mod>()
         for (mod in modsDir.walkTopDown()) {
             if (mod.isDirectory) continue
@@ -84,13 +84,13 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
         val request = BulkModRequest(localMods.map { it.makeRequest() })
         val response = request.request()
 
-        val outdated = mutableListOf<Pair<Mod, RemoteMod>>()
+        val outdated = mutableListOf<ModPair>()
         for (i in localMods.indices) {
             val local = localMods[i]
             val remote = local.applyData(response[i])
 
             if (remote > local)
-                outdated.add(local to remote)
+                outdated.add(ModPair(local, remote))
         }
 
         return outdated
@@ -159,7 +159,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
      *
      * @since 0.0.2
      */
-    fun updateMods(mods: List<Pair<Mod, RemoteMod>>) {
+    fun updateMods(mods: List<ModPair>) {
         launchCoroutine("Mod Updater") {
             val loading = LoadingGui(mods.size)
             loading.isVisible = true

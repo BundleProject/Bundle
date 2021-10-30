@@ -3,6 +3,7 @@ package org.bundleproject.bundle.gui
 import org.bundleproject.bundle.Bundle
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.entities.RemoteMod
+import org.bundleproject.bundle.utils.ModPair
 import org.bundleproject.bundle.utils.getResourceImage
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
@@ -17,7 +18,7 @@ import javax.swing.*
  *
  * @since 0.0.2
  */
-class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<Pair<Mod, RemoteMod>>, condition: Condition? = null) : JFrame("Bundle") {
+class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<ModPair>, condition: Condition? = null) : JFrame("Bundle") {
     
     init {
         iconImage = getResourceImage("/bundle.png")
@@ -60,7 +61,7 @@ class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<Pair<Mod, 
 
         val downloadButton = JButton("Update")
         downloadButton.addActionListener {
-            bundle.updateMods(mods.filter { it.second.enabled })
+            bundle.updateMods(mods.filter { it.remote.enabled })
             dispose()
             condition?.signal()
         }

@@ -12,5 +12,4 @@ class RemoteMod(
     fileName: String,
     platform: Platform,
     val downloadUrl: String,
-) : Mod(enabled, name, id, version, minecraftVersion, fileName, platform) {
-}
+) : Mod(enabled, name, id, version, minecraftVersion, fileName, platform)
