@@ -1,13 +1,11 @@
 package org.bundleproject.bundle.entities
 
 import com.github.zafarkhaja.semver.Version
-import io.ktor.client.request.*
-import org.bundleproject.bundle.entities.platform.Platform
-import org.bundleproject.bundle.utils.API
-import org.bundleproject.bundle.utils.API_VERSION
-import org.bundleproject.bundle.utils.http
+import org.bundleproject.bundle.api.data.ModData
+import org.bundleproject.bundle.api.data.Platform
+import org.bundleproject.bundle.api.requests.ModRequest
 
-data class Mod(
+open class Mod(
     @Transient var enabled: Boolean = true,
     val name: String,
     val id: String,
@@ -16,15 +14,29 @@ data class Mod(
     val fileName: String,
     val platform: Platform,
 ) {
-    @Transient
-    val latestUrl = "$API/$API_VERSION/mods/$id/$platform/$minecraftVersion/latest/"
-    @Transient
-    val latestDownloadUrl = latestUrl + "download"
+    val downloadEndpoint = "${makeRequest().endpoint}/download"
 
-    companion object {
-        suspend fun fromUrl(url: String): Mod {
-            return http.get(url)
-        }
+    fun makeRequest(): ModRequest =
+        ModRequest(id, platform, minecraftVersion.toString())
+
+    fun applyData(data: ModData): RemoteMod {
+        return RemoteMod(
+            enabled,
+            name,
+            id,
+            data.version,
+            minecraftVersion,
+            fileName,
+            platform,
+            data.url,
+        )
     }
 
+    suspend fun latest(): RemoteMod {
+        return applyData(makeRequest().request())
+    }
+
+    operator fun compareTo(other: Mod): Int {
+        return version.compareTo(other.version)
+    }
 }

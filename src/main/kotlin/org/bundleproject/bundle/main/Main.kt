@@ -15,23 +15,29 @@ val entrypoints = arrayOf(
 
 suspend fun main(args: Array<String>) {
     findEntrypoint().apply {
-        val version = (args["version"] ?: "x.x.x").let {
-            if (it == "MultiMC5") { "x.x.x" } else { it }
+        try {
+            val version = (args["version"] ?: "x.x.x").let {
+                if (it == "MultiMC5") { "x.x.x" } else { it }
+            }
+
+            Bundle(File(args["gameDir"] ?: "."), Version.valueOf(version), "mods").start()
+        } catch (e: Throwable) {
+            e.printStackTrace()
         }
 
-        Bundle(File(args["gameDir"] ?: "."), Version.valueOf(version), "mods").start()
-        getMethod("main", Array<String>::class.java).invoke(null, args)
+        this?.getMethod("main", Array<String>::class.java)?.invoke(null, args)
     }
 }
 
 private operator fun Array<String>.get(arg: String) = getOrNull(indexOf("--$arg") + 1)
 
-private fun findEntrypoint(): Class<*> {
+private fun findEntrypoint(): Class<*>? {
     entrypoints.forEach {
         runCatching { Class.forName(it) }
             .getOrNull()
             ?.let { return it }
     }
 
-    error("Bundle did not detect any known game entrypoints!")
+    println("Assuming development environment and returning no entrypoint.")
+    return null
 }

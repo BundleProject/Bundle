@@ -1,5 +1,7 @@
 package org.bundleproject.bundle.utils
 
+import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -32,3 +34,6 @@ fun getResourceImage(path: String): BufferedImage =
 
 fun launchCoroutine(name: String, block: suspend CoroutineScope.() -> Unit) =
     CoroutineScope(Dispatchers.IO + CoroutineName(name)).launch(block = block)
+
+fun getFileNameFromUrl(url: String): String =
+    url.decodeURLPart(url.lastIndexOf('/') + 1)

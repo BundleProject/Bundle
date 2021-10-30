@@ -2,9 +2,11 @@ package org.bundleproject.bundle.gui
 
 import org.bundleproject.bundle.Bundle
 import org.bundleproject.bundle.entities.Mod
+import org.bundleproject.bundle.entities.RemoteMod
 import org.bundleproject.bundle.utils.getResourceImage
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout
+import java.net.URL
 import java.util.concurrent.locks.Condition
 import javax.swing.*
 
@@ -15,7 +17,7 @@ import javax.swing.*
  *
  * @since 0.0.2
  */
-class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<Pair<Mod, Mod>>, condition: Condition? = null) : JFrame("Bundle") {
+class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<Pair<Mod, RemoteMod>>, condition: Condition? = null) : JFrame("Bundle") {
     
     init {
         iconImage = getResourceImage("/bundle.png")
@@ -34,10 +36,10 @@ class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<Pair<Mod, 
                 remote.name,
                 local.version.toString(),
                 remote.version.toString(),
-                // TODO: 06/08/2021 get download url host because sk1er annoying
+                URL(remote.downloadUrl).host,
             ))
         }
-        val table = JTable(rows.toTypedArray(), arrayOf("", "Mod", "Current", "Remote"))
+        val table = JTable(rows.toTypedArray(), arrayOf("", "Mod", "Current", "Remote", "Host"))
         gbc.gridx = 0
         gbc.gridy = 0
         gbc.gridwidth = 2

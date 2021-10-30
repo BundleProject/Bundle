@@ -8,7 +8,9 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.Mod
-import org.bundleproject.bundle.entities.platform.Platform
+import org.bundleproject.bundle.api.data.Platform
+import org.bundleproject.bundle.api.requests.BulkModRequest
+import org.bundleproject.bundle.entities.RemoteMod
 import org.bundleproject.bundle.gui.LoadingGui
 import org.bundleproject.bundle.gui.UpdateOverviewGui
 import org.bundleproject.bundle.utils.*
@@ -36,10 +38,10 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
 
     suspend fun start() {
         try {
+            println("Starting Bundle...")
             try { UIManager.setLookAndFeel(FlatLightLaf()) }
             catch (e: Throwable) { e.printStackTrace() }
 
-            checkOutdated()
             val outdated = getOutdatedMods()
 
             if (outdated.isEmpty()) return
@@ -47,7 +49,9 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
             val lock = ReentrantLock()
             val condition = lock.newCondition()
             lock.withLock {
-                UpdateOverviewGui(this, outdated, condition)
+                UpdateOverviewGui(this, outdated, condition).apply {
+                    isVisible = true
+                }
                 condition.await()
             }
 
@@ -59,22 +63,34 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
     /**
      * Walks through the mods and looks through each file
      * and attempts to check if it's a valid mod
-     * and if it's out of date
+     *
+     * All the valid mods are collected into a list before
+     * bulk-requesting the latest versions from the API.
+     * They are matched into pairs and returned.
      *
      * @since 0.0.1
      */
-    private fun getOutdatedMods(): MutableList<Pair<Mod, Mod>> {
-        val outdated = mutableListOf<Pair<Mod, Mod>>()
+    private suspend fun getOutdatedMods(): MutableList<Pair<Mod, RemoteMod>> {
+        val localMods = mutableListOf<Mod>()
         for (mod in modsDir.walkTopDown()) {
+            if (mod.isDirectory) continue
+
             val localMod = getModInfo(mod) ?: continue
-            if (localMod.version != version) continue
+            if (localMod.minecraftVersion != version) continue
 
-            val remoteMod = runBlocking { Mod.fromUrl(localMod.latestUrl) }
+            localMods.add(localMod)
+        }
 
-            // out of date
-            if (remoteMod.version.greaterThan(localMod.version)) {
-                outdated.add(Pair(localMod, remoteMod))
-            }
+        val request = BulkModRequest(localMods.map { it.makeRequest() })
+        val response = request.request()
+
+        val outdated = mutableListOf<Pair<Mod, RemoteMod>>()
+        for (i in localMods.indices) {
+            val local = localMods[i]
+            val remote = local.applyData(response[i])
+
+            if (remote > local)
+                outdated.add(local to remote)
         }
 
         return outdated
@@ -138,12 +154,12 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
 
 
     /**
-     * Goes through a list of mods and linearly deletes
+     * Goes through a list of mods and asynchronously deletes
      * and replaces it with its updated counterpart
      *
      * @since 0.0.2
      */
-    fun updateMods(mods: List<Pair<Mod, Mod>>) {
+    fun updateMods(mods: List<Pair<Mod, RemoteMod>>) {
         launchCoroutine("Mod Updater") {
             val loading = LoadingGui(mods.size)
             loading.isVisible = true
@@ -152,7 +168,7 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
                     val current = File(modsDir, local.fileName)
 
                     Files.delete(current.toPath())
-                    runBlocking { URL(remote.latestDownloadUrl) }
+                    runBlocking { URL(remote.downloadUrl) }
                         .download(File(modsDir, remote.fileName))
                     loading.finish()
                 }
@@ -160,18 +176,4 @@ class Bundle(private val gameDir: File, private val version: Version, modFolderN
         }
 
     }
-
-    /**
-     * Checks if Bundle is outdated.
-     *
-     * @since 0.0.3
-     */
-    private suspend fun checkOutdated() {
-        val versions = JsonParser.parseString(http.get<String>("$API/$API_VERSION/bundle/version")).asJsonObject
-
-        if (Version.valueOf(versions.get("updater").asString).greaterThan(VERSION)) {
-            JOptionPane.showMessageDialog(null, "Bundle is outdated. Please re-run the installer to get the update!", "Bundle", JOptionPane.WARNING_MESSAGE)
-        }
-    }
-
 }
