@@ -1,6 +1,5 @@
 package org.bundleproject.bundle.utils
 
-import com.github.zafarkhaja.semver.Version
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
@@ -8,7 +7,6 @@ import com.google.gson.stream.JsonWriter
 import org.bundleproject.bundle.api.data.Platform
 
 val gson = GsonBuilder().apply {
-    setPrettyPrinting()
     applyGson(this)
 }.create()
 
@@ -43,7 +41,7 @@ object VersionTypeAdapter : TypeAdapter<Version>() {
 
     override fun read(`in`: JsonReader?): Version {
         `in`?.let {
-            return Version.valueOf(it.nextString())
+            return Version.of(it.nextString())
         } ?: error("The JsonReader given to the VersionTypeAdapter was null")
     }
 }

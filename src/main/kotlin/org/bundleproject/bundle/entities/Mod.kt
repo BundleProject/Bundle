@@ -1,9 +1,10 @@
 package org.bundleproject.bundle.entities
 
-import com.github.zafarkhaja.semver.Version
 import org.bundleproject.bundle.api.data.ModData
 import org.bundleproject.bundle.api.data.Platform
 import org.bundleproject.bundle.api.requests.ModRequest
+import org.bundleproject.bundle.utils.Version
+import org.bundleproject.bundle.utils.getFileNameFromUrl
 
 open class Mod(
     @Transient var enabled: Boolean = true,
@@ -26,7 +27,7 @@ open class Mod(
             id,
             data.version,
             minecraftVersion,
-            fileName,
+            getFileNameFromUrl(data.url),
             platform,
             data.url,
         )

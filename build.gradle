@@ -5,7 +5,7 @@ plugins {
 }
 
 group "org.bundleproject"
-version "0.0.3"
+version "0.1.0"
 archivesBaseName = "Bundle"
 
 java {
@@ -27,9 +27,9 @@ configurations {
 
 dependencies {
     include "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.5.31"
+    include "org.jetbrains.kotlin:kotlin-reflect:1.5.31"
 
     include "com.google.code.gson:gson:2.8.9"
-    include "com.github.zafarkhaja:jsemver:0.9.0"
 
     include 'com.formdev:flatlaf:1.6.1'
 

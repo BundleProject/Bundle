@@ -1,6 +1,6 @@
 package org.bundleproject.bundle.api.data
 
-import com.github.zafarkhaja.semver.Version
+import org.bundleproject.bundle.utils.Version
 
 data class ModData(
     val url: String,

@@ -32,6 +32,10 @@ class LoadingGui(private val updateCount: Int) : JFrame("Updating Mods") {
         pack()
     }
 
+    /**
+     * Indicates to gui that another mod has finished downloading
+     * and the progress bar should progress or complete.
+     */
     fun finish() {
         if (progressBar.value + 1 == updateCount) {
             dispose()

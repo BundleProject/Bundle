@@ -1,5 +1,6 @@
 package org.bundleproject.bundle.gui
 
+import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.Bundle
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.entities.RemoteMod
@@ -61,7 +62,7 @@ class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<ModPair>, 
 
         val downloadButton = JButton("Update")
         downloadButton.addActionListener {
-            bundle.updateMods(mods.filter { it.remote.enabled })
+            runBlocking { bundle.updateMods(mods.filter { it.remote.enabled }) }
             dispose()
             condition?.signal()
         }

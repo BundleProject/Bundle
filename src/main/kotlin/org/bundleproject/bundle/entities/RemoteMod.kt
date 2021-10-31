@@ -1,7 +1,7 @@
 package org.bundleproject.bundle.entities
 
-import com.github.zafarkhaja.semver.Version
 import org.bundleproject.bundle.api.data.Platform
+import org.bundleproject.bundle.utils.Version
 
 class RemoteMod(
     enabled: Boolean = true,
