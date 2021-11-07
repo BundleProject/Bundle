@@ -33,6 +33,8 @@ import kotlin.concurrent.withLock
 class Bundle(private val gameDir: File, private val version: Version?, modFolderName: String) {
     private val modsDir = File(gameDir, modFolderName)
 
+    constructor(gameDir: File, version: String?, modFolderName: String) : this(gameDir, version?.let(Version::of), modFolderName)
+
     suspend fun start() {
         try {
             info("Starting Bundle...")
@@ -43,7 +45,11 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
 
             val outdated = getOutdatedMods()
 
-            if (outdated.isEmpty()) return
+            // return if outdated is empty
+            if (outdated.isEmpty()) {
+                info("No outdated mods found.")
+                return
+            }
 
 //            val lock = ReentrantLock()
 //            val condition = lock.newCondition()
