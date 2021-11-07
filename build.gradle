@@ -5,7 +5,7 @@ plugins {
 }
 
 group "org.bundleproject"
-version "0.1.0"
+version "0.1.1"
 archivesBaseName = "Bundle"
 
 java {
