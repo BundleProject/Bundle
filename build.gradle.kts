@@ -17,7 +17,7 @@ dependencies {
 
     implementation("com.google.code.gson:gson:2.8.9")
 
-    implementation("com.formdev:flatlaf:1.6.1")
+    implementation("com.formdev:flatlaf:1.6.2")
 
     implementation("io.ktor:ktor-client-gson:1.6.5")
     implementation("io.ktor:ktor-client-core:1.6.5")
