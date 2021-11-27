@@ -3,8 +3,8 @@ package org.bundleproject.bundle.entities
 import org.bundleproject.bundle.api.data.ModData
 import org.bundleproject.bundle.api.data.Platform
 import org.bundleproject.bundle.api.requests.ModRequest
-import org.bundleproject.bundle.utils.Version
 import org.bundleproject.bundle.utils.getFileNameFromUrl
+import org.bundleproject.libversion.Version
 
 open class Mod(
     @Transient var enabled: Boolean = true,

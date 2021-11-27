@@ -1,12 +1,14 @@
 package org.bundleproject.bundle.utils
 
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonWriter
 import org.bundleproject.bundle.api.data.Platform
+import org.bundleproject.libversion.Version
 
-val gson = GsonBuilder().apply {
+val gson: Gson = GsonBuilder().apply {
     applyGson(this)
 }.create()
 

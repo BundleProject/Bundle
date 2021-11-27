@@ -20,7 +20,6 @@ import javax.swing.*
  * @since 0.0.2
  */
 class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<ModPair>, condition: Condition? = null) : JFrame("Bundle") {
-    
     init {
         iconImage = getResourceImage("/bundle.png")
         defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
@@ -75,5 +74,4 @@ class UpdateOverviewGui(private val bundle: Bundle, mods: MutableList<ModPair>, 
 
         pack()
     }
-    
 }

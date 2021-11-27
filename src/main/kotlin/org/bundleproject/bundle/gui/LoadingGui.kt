@@ -13,7 +13,6 @@ import javax.swing.WindowConstants
  * @since 0.0.4
  */
 class LoadingGui(private val updateCount: Int) : JFrame("Updating Mods") {
-
     private val progressBar: JProgressBar
 
     init {
@@ -43,5 +42,4 @@ class LoadingGui(private val updateCount: Int) : JFrame("Updating Mods") {
             progressBar.value += 1
         }
     }
-
 }

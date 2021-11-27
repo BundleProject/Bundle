@@ -5,21 +5,16 @@ import com.google.gson.JsonParser
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 import org.bundleproject.bundle.entities.Mod
 import org.bundleproject.bundle.api.data.Platform
 import org.bundleproject.bundle.api.requests.BulkModRequest
 import org.bundleproject.bundle.gui.LoadingGui
-import org.bundleproject.bundle.gui.UpdateOverviewGui
 import org.bundleproject.bundle.utils.*
+import org.bundleproject.libversion.Version
 import java.io.File
 import java.io.InputStreamReader
-import java.net.URL
-import java.nio.file.Files
-import java.util.concurrent.locks.ReentrantLock
 import java.util.jar.JarFile
 import javax.swing.*
-import kotlin.concurrent.withLock
 
 /**
  * The Bundle object holds the code to start the version checking
@@ -30,24 +25,22 @@ import kotlin.concurrent.withLock
  *
  * @since 0.0.1
  */
-class Bundle(private val gameDir: File, private val version: Version?, modFolderName: String) {
+class Bundle(gameDir: File, private val version: Version?, modFolderName: String) {
     private val modsDir = File(gameDir, modFolderName)
-
-    constructor(gameDir: File, version: String?, modFolderName: String) : this(gameDir, version?.let(Version::of), modFolderName)
 
     suspend fun start() {
         try {
-            info("Starting Bundle...")
+            logger.info("Starting Bundle...")
             println()
 
             try { UIManager.setLookAndFeel(FlatLightLaf()) }
-            catch (e: Throwable) { e.printStackTrace() }
+            catch (e: Throwable) { logger.error(e) { "Couldn't set look and feel...." } }
 
             val outdated = getOutdatedMods()
 
             // return if outdated is empty
             if (outdated.isEmpty()) {
-                info("No outdated mods found.")
+                logger.info("No outdated mods found.")
                 return
             }
 
@@ -63,7 +56,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             updateMods(outdated)
 
         } catch (e: Throwable) {
-            e.printStackTrace()
+            logger.error(e) { "Error while updating mods! Bundle exited!" }
         }
     }
 
@@ -78,7 +71,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
      * @since 0.0.1
      */
     private suspend fun getOutdatedMods(): MutableList<ModPair> {
-        info("Getting outdated mods...")
+        logger.info("Getting outdated mods...")
 
         val localMods = mutableListOf<Mod>()
         for (mod in modsDir.walkTopDown()) {
@@ -87,8 +80,8 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             val localMod = try {
                 getModInfo(mod)
             } catch (e: Exception) {
-                if (e is Version.VersionParseException) err("Failed to parse version for ${mod.name}")
-                else e.printStackTrace()
+                if (e is Version.VersionParseException) logger.error(e) { "Failed to parse version for ${mod.name}" }
+                else logger.error(e) { "Failed to get mod info for ${mod.name}" }
 
                 null
             } ?: continue
@@ -97,14 +90,14 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
 
             localMods.add(localMod)
         }
-        info("Found: ${localMods.map { it.id }.toFormattedString()}")
+        logger.info("Found: ${localMods.map { it.id }.toFormattedString()}")
         println()
 
-        info("Making bulk request to API.")
+        logger.info("Making bulk request to API.")
         val request = BulkModRequest(localMods.map { it.makeRequest() })
         val response = request.request()
 
-        info("Comparing local to remote mod versions.")
+        logger.info("Comparing local to remote mod versions.")
         val outdated = mutableListOf<ModPair>()
         for (i in localMods.indices) {
             val local = localMods[i]
@@ -113,8 +106,8 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             if (remote > local)
                 outdated.add(ModPair(local, remote))
         }
-        info("${outdated.size}/${localMods.size} mods need an update.")
-        info("Outdated: ${outdated.map { it.remote.id }.toFormattedString()}")
+        logger.info("${outdated.size}/${localMods.size} mods need an update.")
+        logger.info("Outdated: ${outdated.map { it.remote.id }.toFormattedString()}")
         println()
 
         return outdated
@@ -126,10 +119,10 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
      * @since 0.0.1
      */
     private fun getModInfo(modFile: File): Mod? {
-        info("Getting mod info using method: ", false)
+        logger.info("Getting mod info using method...")
         JarFile(modFile).use { jar ->
             jar.getJarEntry("bundle.project.json")?.let getJarEntry@{ modInfo ->
-                info("Bundle Info File")
+                logger.info("Bundle Info File")
 
                 InputStreamReader(jar.getInputStream(modInfo)).use {
                     val json = JsonParser.parseReader(it).asJsonObject
@@ -148,7 +141,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             }
 
             jar.getJarEntry("fabric.mod.json")?.let { modInfo ->
-                info("Fabric Info File")
+                logger.info("Fabric Info File")
 
                 InputStreamReader(jar.getInputStream(modInfo)).use {
                     val json = JsonParser.parseReader(it).asJsonObject
@@ -164,7 +157,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             }
 
             jar.getJarEntry("mcmod.info")?.let { modInfo ->
-                info("Forge Info File")
+                logger.info("Forge Info File")
 
                 InputStreamReader(jar.getInputStream(modInfo)).use {
                     val json = JsonParser.parseReader(it).asJsonArray[0].asJsonObject
@@ -180,7 +173,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
             }
         }
 
-        err("None")
+        logger.error("None")
         return null
     }
 
@@ -192,7 +185,7 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
      * @since 0.0.2
      */
     suspend fun updateMods(mods: List<ModPair>) {
-        info("Updating Mods...")
+        logger.info("Updating Mods...")
 
         coroutineScope {
             val loading = LoadingGui(mods.size)
@@ -202,9 +195,9 @@ class Bundle(private val gameDir: File, private val version: Version?, modFolder
                     val current = File(modsDir, local.fileName)
                     val new = File(modsDir, remote.fileName)
 
-                    info("Downloading: ${new.name}")
+                    logger.info("Downloading: ${new.name}")
                     if (http.downloadFile(new, remote.downloadEndpoint)) {
-                        info("Deleting: ${current.name}")
+                        logger.info("Deleting: ${current.name}")
                         current.delete()
                     } else {
                         error("Failed to download! Skipping!")

@@ -12,6 +12,7 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import mu.KotlinLogging
 import org.bundleproject.bundle.Bundle
 import java.awt.image.BufferedImage
 import java.io.File
@@ -20,6 +21,8 @@ import java.io.FileOutputStream
 import java.net.URL
 import java.util.*
 import javax.imageio.ImageIO
+
+val logger = KotlinLogging.logger("Bundle Updater")
 
 /**
  * Downloads a file from a url using Ktor

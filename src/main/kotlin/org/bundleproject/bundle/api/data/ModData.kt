@@ -1,6 +1,6 @@
 package org.bundleproject.bundle.api.data
 
-import org.bundleproject.bundle.utils.Version
+import org.bundleproject.libversion.Version
 
 data class ModData(
     val url: String,
