@@ -24,7 +24,7 @@ dependencies {
     implementation("io.ktor:ktor-client-apache:1.6.5")
 
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.0")
-    implementation("ch.qos.logback:logback-classic:1.2.7")
+    implementation("ch.qos.logback:logback-classic:1.2.9")
 
     implementation("org.bundleproject:libversion:0.0.2")
 }
