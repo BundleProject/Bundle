@@ -26,7 +26,7 @@ dependencies {
     implementation("io.github.microutils:kotlin-logging-jvm:2.1.0")
     implementation("ch.qos.logback:logback-classic:1.2.7")
 
-    implementation("org.bundleproject:libversion:0.0.2")
+    implementation("org.bundleproject:libversion:0.0.3")
 }
 
 tasks {
