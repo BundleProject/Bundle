@@ -15,7 +15,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8", "1.6.0"))
     implementation(kotlin("reflect", "1.6.0"))
 
-    implementation("com.google.code.gson:gson:2.8.9")
+    implementation("com.google.code.gson:gson:2.10")
 
     implementation("com.formdev:flatlaf:1.6.3")
 
